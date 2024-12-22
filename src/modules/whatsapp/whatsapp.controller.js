@@ -1,6 +1,6 @@
 //
 
-import { asyncHandler } from "../../utils/errorHandling";
+import { asyncHandler } from "../../utils/errorHandling.js";
 
 // ==================== verifyWebhook ====================
 export const verifyWebhook = asyncHandler(async (req, res, next) => {
