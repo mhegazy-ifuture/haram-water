@@ -5,7 +5,7 @@ import {
   sendWhatsappMessage,
 } from "../../services/whatsapp.service.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
-import { welcomeMessageTemplate } from "../../utils/whatsappMessages.js";
+import { welcomeMessage } from "../../utils/whatsappMessages.js";
 
 // ==================== verifyWebhook ====================
 export const verifyWebhook = asyncHandler(async (req, res, next) => {
@@ -29,14 +29,14 @@ export const handleIncomingMessage = asyncHandler(async (req, res, next) => {
       new Error("No messages found", { cause: 404, conversation_id })
     );
   }
-
+  console.log("messages", { messages });
   const { from, id, type } = messages[0];
   await markMessageAsRead({ messageId: id }).catch((err) =>
     next(new Error(err, { cause: 500 }))
   );
   if (type === "text") {
     sendWhatsappMessage({
-      message: welcomeMessageTemplate({ recipentNumber: from }),
+      message: welcomeMessage({ recipentNumber: from }),
     }).catch((err) => next(new Error(err, { cause: 500 })));
   }
 
