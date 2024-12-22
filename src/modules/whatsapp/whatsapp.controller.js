@@ -34,7 +34,33 @@ export const handleIncomingMessage = asyncHandler(async (req, res, next) => {
   await markMessageAsRead({ messageId: id }).catch((err) =>
     next(new Error(err, { cause: 500 }))
   );
-  sendWhatsappMessage({
-    message: welcomeMessageTemplate({ recipentNumber: from }),
-  }).catch((err) => next(new Error(err, { cause: 500 })));
+  if (type === "text") {
+    sendWhatsappMessage({
+      message: welcomeMessageTemplate({ recipentNumber: from }),
+    }).catch((err) => next(new Error(err, { cause: 500 })));
+  }
+
+  if (type === "interactive") {
+    const { type: interactiveType } = messages[0].interactive;
+    console.log("interactiveType", interactiveType);
+    switch (interactiveType) {
+      case "button": {
+        const {
+          reply: { id: replyId },
+        } = messages[0].interactive.action.buttons[0];
+        console.log("replyId", replyId);
+        if (replyId === "al-msajed-al-haram") {
+          await sendWhatsappMessage({
+            message: DonationAmount({ recipentNumber: from }),
+          }).catch((err) => next(new Error(err, { cause: 500 })));
+        } else if (replyId === "al-msajed-al-nabawi") {
+          // Do something
+          await sendWhatsappMessage({
+            message: DonationAmount({ recipentNumber: from }),
+          }).catch((err) => next(new Error(err, { cause: 500 })));
+        }
+        break;
+      }
+    }
+  }
 });
