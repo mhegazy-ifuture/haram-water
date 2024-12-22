@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export const markMessageAsRead = async ({ messageId }) =>
   await axios.post(
     `${process.env.WHATSAPP_BASE_URL}/`,

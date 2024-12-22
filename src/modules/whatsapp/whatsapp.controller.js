@@ -1,7 +1,11 @@
 //
 
-import { markMessageAsRead, sendWhatsappMessage } from "../../services/whatsapp.service.js";
+import {
+  markMessageAsRead,
+  sendWhatsappMessage,
+} from "../../services/whatsapp.service.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
+import { welcomeMessageTemplate } from "../../utils/whatsappMessages.js";
 
 // ==================== verifyWebhook ====================
 export const verifyWebhook = asyncHandler(async (req, res, next) => {
