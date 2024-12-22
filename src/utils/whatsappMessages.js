@@ -1,4 +1,4 @@
-const welcomeMessageTemplate = ({ recipentNumber }) => {
+export const welcomeMessageTemplate = ({ recipentNumber }) => {
   return JSON.stringify({
     messaging_product: "whatsapp",
     to: recipentNumber,

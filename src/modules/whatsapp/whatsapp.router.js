@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { verifyWebhook } from "./whatsapp.controller.js";
+import { handleIncomingMessage, verifyWebhook } from "./whatsapp.controller.js";
 
 const router = Router();
 router.get("/", verifyWebhook);
-router.post("/", verifyWebhook);
+router.post("/", handleIncomingMessage);
 export default router;

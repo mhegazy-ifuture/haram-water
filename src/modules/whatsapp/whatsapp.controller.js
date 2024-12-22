@@ -1,18 +1,18 @@
 //
 
+import { markMessageAsRead, sendWhatsappMessage } from "../../services/whatsapp.service.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
 // ==================== verifyWebhook ====================
 export const verifyWebhook = asyncHandler(async (req, res, next) => {
   const { query } = req;
   const { "hub.verify_token": verifyToken, "hub.challenge": challenge } = query;
-  const accessToken = "EAAJ123648548nfjnvj ";
+  const accessToken = "RTQWWTVHBDS32145698741258963";
+
   if (challenge && verifyToken && verifyToken === accessToken) {
-    if (verifyToken === process.env.WHATSAPP_VERIFY_TOKEN) {
-      return res.status(200).send(challenge);
-    } else {
-      next(new Error("Invalid verify token", { cause: 500 }));
-    }
+    res.status(200).send(challenge);
+  } else {
+    next(new Error("Failed to verify token", { cause: 500 }));
   }
 });
 
