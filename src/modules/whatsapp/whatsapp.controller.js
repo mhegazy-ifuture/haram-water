@@ -6,6 +6,7 @@ import {
 } from "../../services/whatsapp.service.js";
 import {
   DonationAmount,
+  DonationConfirmation,
   welcomeMessage,
 } from "../../shared/messageTemplates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
@@ -34,28 +35,49 @@ export const handleIncomingMessage = asyncHandler(async (req, res, next) => {
       new Error("No messages found", { cause: 404, conversation_id })
     );
   }
-  console.log("messages", { messages });
-  const { from, id, type } = messages[0];
-  await markMessageAsRead({ messageId: id }).catch((err) =>
+
+  const [{ from, id, type }] = messages;
+
+  markMessageAsRead({ messageId: id }).catch((err) =>
     next(new Error(err, { cause: 500 }))
   );
-  if (type === "text") {
-    sendWhatsappMessage({
-      message: welcomeMessage({ recipentNumber: from }),
-    }).catch((err) => next(new Error(err, { cause: 500 })));
-  }
 
-  if (type === "interactive") {
-    const { type: interactiveType } = messages[0].interactive;
-    console.log("messages", JSON.stringify(messages));
-    switch (interactiveType) {
-      case "button_reply": {
-        const { id } = messages[0].interactive.button_reply;
-        await sendWhatsappMessage({
-          message: DonationAmount({ recipentNumber: from }),
-        }).catch((err) => next(new Error(err, { cause: 500 })));
-        break;
+  switch (type) {
+    case "text":
+      sendWhatsappMessage({
+        message: welcomeMessage({ recipentNumber: from }),
+      }).catch((err) => next(new Error(err, { cause: 500 })));
+      break;
+
+    case "interactive":
+      const {
+        type: interactiveType,
+        button_reply,
+        list_reply,
+      } = messages[0].interactive;
+
+      switch (interactiveType) {
+        case "button_reply":
+          const { id: buttonReplyId, title: donationDestination } =
+            button_reply;
+          userSessions[from] = { donationDestination };
+
+          sendWhatsappMessage({
+            message: DonationAmount({ recipentNumber: from }),
+          }).catch((err) => next(new Error(err, { cause: 500 })));
+          break;
+
+        case "list_reply":
+          const { id, title: donationAmountCartoons, description } = list_reply;
+          userSessions[from] = {
+            donationAmountCartoons,
+            donationPrice: parseInt(description),
+          };
+
+          sendWhatsappMessage({
+            message: DonationConfirmation({ recipentNumber: from }),
+          }).catch((err) => next(new Error(err, { cause: 500 })));
+          break;
       }
-    }
   }
 });
