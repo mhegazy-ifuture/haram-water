@@ -7,6 +7,7 @@ import {
 import {
   DonationAmount,
   DonationConfirmation,
+  paymentConfirmation,
   welcomeMessage,
 } from "../../shared/messageTemplates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
@@ -75,7 +76,10 @@ export const handleIncomingMessage = asyncHandler(async (req, res, next) => {
           };
 
           sendWhatsappMessage({
-            message: DonationConfirmation({ recipentNumber: from }),
+            message: paymentConfirmation({
+              recipentNumber: from,
+              price: description,
+            }),
           }).catch((err) => next(new Error(err, { cause: 500 })));
           break;
       }
