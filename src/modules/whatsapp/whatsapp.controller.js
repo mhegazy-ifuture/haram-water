@@ -4,9 +4,14 @@ import {
   markMessageAsRead,
   sendWhatsappMessage,
 } from "../../services/whatsapp.service.js";
+import {
+  DonationAmount,
+  welcomeMessage,
+} from "../../shared/messageTemplates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
-import { welcomeMessage } from "../../utils/whatsappMessages.js";
 
+// =================== user sessions ===================
+const userSessions = {};
 // ==================== verifyWebhook ====================
 export const verifyWebhook = asyncHandler(async (req, res, next) => {
   const { query } = req;
@@ -42,23 +47,13 @@ export const handleIncomingMessage = asyncHandler(async (req, res, next) => {
 
   if (type === "interactive") {
     const { type: interactiveType } = messages[0].interactive;
-    console.log("interactiveType", interactiveType);
+    console.log("messages", JSON.stringify(messages));
     switch (interactiveType) {
-      case "button": {
-        const {
-          reply: { id: replyId },
-        } = messages[0].interactive.action.buttons[0];
-        console.log("replyId", replyId);
-        if (replyId === "al-msajed-al-haram") {
-          await sendWhatsappMessage({
-            message: DonationAmount({ recipentNumber: from }),
-          }).catch((err) => next(new Error(err, { cause: 500 })));
-        } else if (replyId === "al-msajed-al-nabawi") {
-          // Do something
-          await sendWhatsappMessage({
-            message: DonationAmount({ recipentNumber: from }),
-          }).catch((err) => next(new Error(err, { cause: 500 })));
-        }
+      case "button_reply": {
+        const { id } = messages[0].interactive.button_reply;
+        await sendWhatsappMessage({
+          message: DonationAmount({ recipentNumber: from }),
+        }).catch((err) => next(new Error(err, { cause: 500 })));
         break;
       }
     }
