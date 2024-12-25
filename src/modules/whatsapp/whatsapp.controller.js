@@ -39,15 +39,13 @@ export const handleIncomingMessage = asyncHandler(async (req, res, next) => {
 
   const [{ from, id, type }] = messages;
 
-  markMessageAsRead({ messageId: id }).catch((err) =>
-    next(new Error(err, { cause: 500 }))
-  );
+  await markMessageAsRead({ messageId: id });
 
   switch (type) {
     case "text":
-      sendWhatsappMessage({
+      await sendWhatsappMessage({
         message: welcomeMessage({ recipentNumber: from }),
-      }).catch((err) => next(new Error(err, { cause: 500 })));
+      });
       break;
 
     case "interactive":
@@ -63,9 +61,9 @@ export const handleIncomingMessage = asyncHandler(async (req, res, next) => {
             button_reply;
           userSessions[from] = { donationDestination };
 
-          sendWhatsappMessage({
+          await sendWhatsappMessage({
             message: DonationAmount({ recipentNumber: from }),
-          }).catch((err) => next(new Error(err, { cause: 500 })));
+          });
           break;
 
         case "list_reply":
@@ -75,13 +73,18 @@ export const handleIncomingMessage = asyncHandler(async (req, res, next) => {
             donationPrice: parseInt(description),
           };
 
-          sendWhatsappMessage({
+          await sendWhatsappMessage({
             message: paymentConfirmation({
               recipentNumber: from,
-              price: description,
+              price: userSessions[from].donationPrice,
+              amount: userSessions[from].donationAmountCartoons,
+              destination: userSessions[from].donationDestination,
             }),
-          }).catch((err) => next(new Error(err, { cause: 500 })));
+          });
+          delete userSessions[from];
           break;
       }
   }
+
+  res.status(200).send("Message received");
 });

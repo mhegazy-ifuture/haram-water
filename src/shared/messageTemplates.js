@@ -114,14 +114,19 @@ export const DonationConfirmation = ({ recipentNumber }) => {
   });
 };
 
-export const paymentConfirmation = ({ recipentNumber, price }) => {
+export const paymentConfirmation = ({
+  recipentNumber,
+  price,
+  destination,
+  amount,
+}) => {
   return JSON.stringify({
     messaging_product: "whatsapp",
     to: recipentNumber,
     type: "text",
     text: {
       preview_url: true,
-      body: `انقر للدفع ${price} https://developer.paypal.com/home/`,
+      body: `لقد تبرعت بمبلغ ${price} ريال لتوفير ${amount} كرتونة مياه السقيا للحجاج في ${destination}. شكرًا لك على مساهمتك في هذا العمل الخيري العظيم!`,
     },
   });
 };
