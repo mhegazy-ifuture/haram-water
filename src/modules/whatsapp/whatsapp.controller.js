@@ -7,6 +7,7 @@ import {
 import {
   DonationAmount,
   DonationConfirmation,
+  notifyForChoosePlace,
   paymentConfirmation,
   welcomeMessage,
 } from "../../shared/messageTemplates.js";
@@ -39,12 +40,16 @@ export const handleIncomingMessage = asyncHandler(async (req, res, next) => {
 
   const [{ from, id, type }] = messages;
 
-  await markMessageAsRead({ messageId: id });
+  await markMessageAsRead({ messageId: id }).catch((err) => {
+    next(new Error("Failed to mark message as read", { cause: 500, err }));
+  });
 
   switch (type) {
     case "text":
       await sendWhatsappMessage({
         message: welcomeMessage({ recipentNumber: from }),
+      }).catch((err) => {
+        next(new Error(err.response.data, { cause: 500, err }));
       });
       break;
 
@@ -59,20 +64,34 @@ export const handleIncomingMessage = asyncHandler(async (req, res, next) => {
         case "button_reply":
           const { id: buttonReplyId, title: donationDestination } =
             button_reply;
-          userSessions[from] = { donationDestination };
-
+          userSessions[from] = {
+            ...userSessions[from],
+            donationDestination,
+          };
+          console.log(userSessions[from]);
           await sendWhatsappMessage({
             message: DonationAmount({ recipentNumber: from }),
+          }).catch((err) => {
+            next(new Error(err.response.data, { cause: 500, err }));
           });
           break;
 
         case "list_reply":
           const { id, title: donationAmountCartoons, description } = list_reply;
           userSessions[from] = {
+            ...userSessions[from],
             donationAmountCartoons,
             donationPrice: parseInt(description),
           };
-
+          if (!userSessions[from].donationDestination) {
+            await sendWhatsappMessage({
+              message: notifyForChoosePlace({ recipentNumber: from }),
+            }).catch((err) => {
+              next(new Error(err.response.data, { cause: 500, err }));
+            });
+            delete userSessions[from];
+            return res.status(200).send("Message received");
+          }
           await sendWhatsappMessage({
             message: paymentConfirmation({
               recipentNumber: from,
@@ -80,6 +99,8 @@ export const handleIncomingMessage = asyncHandler(async (req, res, next) => {
               amount: userSessions[from].donationAmountCartoons,
               destination: userSessions[from].donationDestination,
             }),
+          }).catch((err) => {
+            next(new Error(err.response.data, { cause: 500, err }));
           });
           delete userSessions[from];
           break;

@@ -42,6 +42,46 @@ export const welcomeMessage = ({ recipentNumber }) => {
   });
 };
 
+export const notifyForChoosePlace = ({ recipentNumber }) => {
+  return JSON.stringify({
+    messaging_product: "whatsapp",
+    to: recipentNumber,
+    type: "interactive",
+    interactive: {
+      type: "button",
+      header: {
+        type: "text",
+        text: `${recipentNumber} مرحبا بك!`,
+      },
+      body: {
+        text: `
+        انت لم تختار الجهة التي ترغب في التبرع لها,
+        من فضلك اختر الجهة التي ترغب في التبرع لها`,
+      },
+      footer: {
+        text: "اختار جهة التبرع",
+      },
+      action: {
+        buttons: [
+          {
+            type: "reply",
+            reply: {
+              id: "al-msajed-al-haram",
+              title: "المسجد الحرام",
+            },
+          },
+          {
+            type: "reply",
+            reply: {
+              id: "al-msajed-al-nabawi",
+              title: "المسجد النبوي",
+            },
+          },
+        ],
+      },
+    },
+  });
+};
 export const DonationAmount = ({ recipentNumber }) => {
   return JSON.stringify({
     messaging_product: "whatsapp",
